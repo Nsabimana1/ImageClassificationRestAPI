@@ -4,13 +4,30 @@ import networking.Communication;
 import networking.Server;
 import networking.ServerListener;
 import networking.Utilities;
+import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Base64;
 import java.util.Scanner;
 
 public class Main {
+    public static void main(String[] args) {
+        String val = "good";
+        String encripted = Base64.getEncoder().encodeToString(val.getBytes());
+        System.out.println(encripted);
+        System.out.println("the decoded message is");
+        System.out.println(new String (Base64.getDecoder().decode(encripted)));
 
+
+        String originalInput = "test input";
+        String encodedString = Base64.getEncoder().encodeToString(originalInput.getBytes());
+
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+        String decodedString = new String(decodedBytes);
+        System.out.println(decodedString);
+
+    }
     public Main(){
     }
 

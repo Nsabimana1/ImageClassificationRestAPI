@@ -8,10 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SampleData {
 
@@ -165,6 +162,15 @@ public class SampleData {
                     }
                 }
             }
+        }
+        return result;
+    }
+
+    //// additional method to read data
+    public static SampleData parseInputData(HashMap<String, BufferedImage> data){
+        SampleData result = new SampleData();
+        for(String k: data.keySet()){
+            result.addFloatDrawing(k, getFloatDrawingFromImage(data.get(k)));
         }
         return result;
     }

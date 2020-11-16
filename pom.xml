@@ -38,6 +38,10 @@
             <artifactId>gson</artifactId>
             <version>2.8.6</version>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- Package as an executable jar -->
