@@ -3,6 +3,8 @@ package storage;
 
 //import com.sun.deploy.util.SystemPropertyUtil;
 
+import core.ImageInfo;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -175,6 +177,23 @@ public class SampleData {
         return result;
     }
 
+
+    public static SampleData parseInputData(ArrayList<ImageInfo> imageInfoData){
+        SampleData result = new SampleData();
+        for(ImageInfo img: imageInfoData){
+            BufferedImage bf = loadImage(new File(img.filePath));
+            result.addFloatDrawing(img.imageLabel, getFloatDrawingFromImage(bf));
+        }
+
+//        for(String k: data.keySet()){
+//            result.addFloatDrawing(k, getFloatDrawingFromImage(data.get(k)));
+//        }
+
+        return result;
+    }
+
+
+
     public static FloatDrawing getFloatDrawingFromImage(BufferedImage bfimage){
         double [][] imagePixels = new double[bfimage.getWidth()][bfimage.getHeight()];
         for (int i = 0; i < bfimage.getWidth(); i++) {
@@ -198,6 +217,7 @@ public class SampleData {
     public static BufferedImage loadImage(File file){
         BufferedImage img = null;
         try {
+            System.out.println(file.getName());
             img = ImageIO.read(file);
         } catch (IOException e) {
             e.printStackTrace();

@@ -20,8 +20,10 @@ public class SOMRecognizer implements RecognizerAI {
     private String[][] labels;
     private SelfOrgMap som;
 
-    public final static int K = 11;
+//    public final static int K = 11;
 
+    // remove this after having more training dataset
+    public final static int K = 5;
 
     // for testing purpose
     int mapside = 0;
@@ -87,6 +89,8 @@ public class SOMRecognizer implements RecognizerAI {
 
     public static String getClassification(ArrayList<Duple<String, Double>> arrayMat, int k){
         Histogram<String> result = new Histogram<>();
+        System.out.println("the value of k is" + k);
+        System.out.println("the size of ArrayMay is" + arrayMat.size());
         for(int i = 0; i < k; i++){
             result.bump(arrayMat.get(i).getFirst());
         }

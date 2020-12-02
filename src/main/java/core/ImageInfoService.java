@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,11 +30,8 @@ public class ImageInfoService {
 //    ));
 
 
-    private List<ImageInfo> images = new ArrayList<>(Arrays.asList(
-            new ImageInfo("1", "MSN", ""),
-            new ImageInfo("2", "MSE", ""),
-            new ImageInfo("3",  "SLTC", "")
-    ));
+    public ArrayList<ImageInfo> images = new ArrayList<>();
+    public ArrayList<ImageInfo> testingImages = new ArrayList<>();
 
     private HashMap<String, BufferedImage> labelToBufferedImage = new HashMap<>();
 
@@ -107,8 +106,6 @@ public class ImageInfoService {
         return img;
     }
 
-
-
 //    void startProgressThread(ArrayBlockingQueue<Double> progress) {
 //        new Thread(() -> {
 //            double prog = 0;
@@ -124,4 +121,47 @@ public class ImageInfoService {
 //    }
 
 
+    public void loadTrainingData(){
+        String[] pathnames;
+        File f = new File("trainImages/");
+        pathnames = f.list();
+        // For each pathname in the pathnames array
+        for (String pathname : pathnames) {
+            // Print the names of files and directories
+            String[] currentImage = pathname.split("_");
+            String fullImagePath = "trainImages/"+pathname;
+            images.add(new ImageInfo(currentImage[1], currentImage[0], fullImagePath));
+
+//            System.out.println(currentImage[0] + ", "+ currentImage[1] + "," + currentImage[2]);
+//            System.out.println(fullImagePath);
+//            BufferedImage bimfull = getImage(fullImagePath);
+//            System.out.println(bimfull);
+        }
+
+//        BufferedImage bim = getImage("Innocent.jpg");
+//        System.out.println(bim);
+
+    }
+
+
+    public void loadTestingData(){
+        String[] pathnames;
+        File f = new File("testImages/");
+        pathnames = f.list();
+        // For each pathname in the pathnames array
+        for (String pathname : pathnames) {
+            // Print the names of files and directories
+            String[] currentImage = pathname.split("_");
+            String fullImagePath = "testImages/"+pathname;
+            testingImages.add(new ImageInfo(currentImage[1], currentImage[0], fullImagePath));
+
+//            System.out.println(currentImage[0] + ", "+ currentImage[1] + "," + currentImage[2]);
+//            System.out.println(fullImagePath);
+//            BufferedImage bimfull = getImage(fullImagePath);
+//            System.out.println(bimfull);
+        }
+
+//        BufferedImage bim = getImage("Innocent.jpg");
+//        System.out.println(bim);
+    }
 }

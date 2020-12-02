@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import storage.*;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -15,6 +18,8 @@ public class EngineServices {
     private ImageInfoService imageInfoService;
 
     private SampleData sampleData = new SampleData();
+
+    private SampleData sampleTestingData = new SampleData();
 
     private RecognizerAI overFitter = new OverFitter();
     private RecognizerAI som6 = new SOM6();
@@ -30,21 +35,73 @@ public class EngineServices {
         recognizerAIMap.put("some6", som6);
         recognizerAIMap.put("some10", som10);
         recognizerAIMap.put("some30", som30);
-        sampleData = SampleData.parseInputData(imageInfoService.getLabelToBufferedImageMap());
+        recognizerAIMap.put("percep_10_10_7", iter10Rate10Hide7);
+//        sampleData = SampleData.parseInputData(imageInfoService.getLabelToBufferedImageMap());
+        imageInfoService.loadTrainingData();
+        imageInfoService.loadTestingData();
+        System.out.println("the size of training data is" + imageInfoService.images.size());
+        sampleData = SampleData.parseInputData(imageInfoService.images);
+        sampleTestingData = SampleData.parseInputData(imageInfoService.testingImages);
     }
 
+    public void setCurrentTrainer(String currentTrainer){
+        if(recognizerAIMap.containsKey(currentTrainer)){
+            trainer = recognizerAIMap.get(currentTrainer);
+        }
+    }
+
+    public void trainAll(){
+        try{
+            initialise();
+            ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
+            for(String trainerAI: recognizerAIMap.keySet()){
+                recognizerAIMap.get(trainerAI).train(sampleData, progress);
+            }
+            trainer = recognizerAIMap.get("percep_10_10_7");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+    public void trainSOM10(){
+        try{
+            initialise();
+            ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
+            recognizerAIMap.get("some10").train(sampleData, progress);
+            trainer = recognizerAIMap.get("some10");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+
     public void train() throws InterruptedException {
+        initialise();
         trainer = overFitter;
         ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
-        overFitter.train(sampleData, progress );
+        overFitter.train(sampleData, progress);
     }
 
     public String findLabelFor(FloatDrawing floatDrawing){
-        String label = overFitter.classify(floatDrawing);
+        String label = trainer.classify(floatDrawing);
         return label;
     }
 
-    void runTests(SampleData testData) {
+    public String predictLabel(String filePath){
+        BufferedImage bufferedImage = SampleData.loadImage(new File(filePath));
+        FloatDrawing floatDrawing =  SampleData.getFloatDrawingFromImage(bufferedImage);
+        String predictedLabel = findLabelFor(floatDrawing);
+        return  predictedLabel;
+    }
+
+    public ArrayList<Result> returnTestDataStatistics(){
+        ArrayList<Result> resultsStatics = runTests(sampleTestingData);
+        return resultsStatics;
+    }
+
+    public ArrayList<Result> runTests(SampleData testData) {
         int numCorrect = 0;
         Histogram<String> correct = new Histogram<>(), incorrect = new Histogram<>();
         for (int i = 0; i < testData.numDrawings(); i++) {
@@ -59,7 +116,19 @@ public class EngineServices {
         double percent = 100.0 * numCorrect / testData.numDrawings();
         String  testResults = "";
         testResults = (String.format("%d/%d (%4.2f%%) correct", numCorrect, testData.numDrawings(), percent));
-//        resetTable(testData, correct, incorrect);
+        ArrayList<Result> resultsInfo = resetTable(testData, correct, incorrect);
         System.out.println(trainer);
+        return resultsInfo;
     }
+
+    public ArrayList<Result> resetTable(SampleData testData, Histogram<String> correct, Histogram<String> incorrect) {
+//        resultTable.getItems().clear();
+        ArrayList<Result> resultTable = new ArrayList<>();
+        for (String label: testData.allLabels()) {
+            resultTable.add(new Result(label, correct.getCountFor(label), incorrect.getCountFor(label)));
+//            resultTable.getItems().add(new Result(label, correct.getCountFor(label), incorrect.getCountFor(label)));
+        }
+        return  resultTable;
+    }
+
 }

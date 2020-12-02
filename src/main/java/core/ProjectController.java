@@ -23,16 +23,39 @@ public class ProjectController {
     @Autowired
     private ImageInfoService imageInfoService;
 
+    @Autowired
+    public  EngineServices engineService;
+
     @RequestMapping("/hi")
     public String printHi(){
         String hi = "HI EEEEE";
-        Gson json = new Gson();
-        return json.toJson(hi);
+        return hi;
+//        Gson json = new Gson();
+//        return json.toJson(hi);
     }
 
     @RequestMapping("/train")
-    public ResponseEntity<Object> trainEngine(){
+    public ResponseEntity<Object> trainEngine() throws InterruptedException {
+        engineService.train();
         return new ResponseEntity<>("Training happening", HttpStatus.OK);
+    }
+
+    @RequestMapping("/trainSOM10")
+    public ResponseEntity<Object> trainEngineWithSOM10Model() throws InterruptedException {
+        engineService.trainSOM10();
+        return new ResponseEntity<>("Training happening", HttpStatus.OK);
+    }
+
+
+    @RequestMapping("/trainAll")
+    public ResponseEntity<Object> trainEngineForAllAIs() throws InterruptedException {
+        engineService.trainAll();
+        return new ResponseEntity<>("Training happening", HttpStatus.OK);
+    }
+
+    @RequestMapping("/loadData")
+    public void loadTrainData() throws InterruptedException {
+        imageInfoService.loadTrainingData();
     }
 
 
@@ -73,10 +96,24 @@ public class ProjectController {
     }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public ResponseEntity<Object> uploadFile(@RequestParam Map<String, String> params) throws IOException {
+    public String uploadFile(@RequestParam Map<String, String> params) throws IOException {
         String id = UUID.randomUUID().toString();
-        String fileName  = params.get("name");
-        String imageFilePath = "images/"+"_"+fileName+"_"+id+".JPEG";
+        String fileName ="";
+        fileName = params.get("name");
+        if(fileName.equals("noName")){
+            String imageFilePath = "predictedImages/"+fileName+"_"+id+"_.JPEG";
+            File convertFile = new File(imageFilePath);
+            convertFile.createNewFile();
+            FileOutputStream fout = new FileOutputStream(convertFile);
+            String source = params.get("image");
+            System.out.println(source);
+            byte [] byteArray = Base64.getDecoder().decode(source);
+            fout.write(byteArray);
+            String label = predictLabel(imageFilePath);
+            return label;
+        }
+
+        String imageFilePath = "trainImages/"+fileName+"_"+id+"_.JPEG";
         File convertFile = new File(imageFilePath);
         convertFile.createNewFile();
         FileOutputStream fout = new FileOutputStream(convertFile);
@@ -85,6 +122,18 @@ public class ProjectController {
         byte [] byteArray = Base64.getDecoder().decode(source);
         fout.write(byteArray);
         imageInfoService.addImage(new ImageInfo(id, fileName, imageFilePath));
-        return new ResponseEntity<>("File uploaded successfully", HttpStatus.OK);
+        return new String("File uploaded successfully");
     }
+
+    public String predictLabel(String filePath){
+        String result = engineService.predictLabel(filePath);
+        return result;
+    }
+
+    @RequestMapping("/runTests")
+    public ArrayList<Result>  testEngine() throws InterruptedException {
+        ArrayList<Result> resultsStatics =  engineService.returnTestDataStatistics();
+        return resultsStatics;
+    }
+
 }
