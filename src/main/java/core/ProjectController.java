@@ -40,10 +40,37 @@ public class ProjectController {
         return new ResponseEntity<>("Training happening", HttpStatus.OK);
     }
 
-    @RequestMapping("/trainSOM10")
+
+    @RequestMapping("/setperceptron")
+    public ResponseEntity<Object> setPerPForEngine() throws InterruptedException {
+        engineService.setCurrentTrainer("percep_10_10_7");
+        return new ResponseEntity<>("percep_10_10_7 is current model", HttpStatus.OK);
+    }
+
+
+    @RequestMapping("/setsome10")
+    public ResponseEntity<Object> setSOMForEngine() throws InterruptedException {
+        engineService.setCurrentTrainer("some10");
+        return new ResponseEntity<>("some10 is current model", HttpStatus.OK);
+    }
+
+    @RequestMapping("/trainperceptron")
     public ResponseEntity<Object> trainEngineWithSOM10Model() throws InterruptedException {
+        engineService.trainPercep_10_10_7();
+        return new ResponseEntity<>("Training for percep_10_10_7 is complete", HttpStatus.OK);
+    }
+
+    @RequestMapping("/trainSOM10")
+    public ResponseEntity<Object> trainEngineWithPercep_10_10_7Model() throws InterruptedException {
         engineService.trainSOM10();
-        return new ResponseEntity<>("Training happening", HttpStatus.OK);
+        return new ResponseEntity<>("Training for SOM10 is complete", HttpStatus.OK);
+    }
+
+
+    @RequestMapping("/trainKNN11")
+    public ResponseEntity<Object> trainEngineWithKNN11Model() throws InterruptedException {
+        engineService.trainKNN11();
+        return new ResponseEntity<>("Training for KNN11 is complete", HttpStatus.OK);
     }
 
 

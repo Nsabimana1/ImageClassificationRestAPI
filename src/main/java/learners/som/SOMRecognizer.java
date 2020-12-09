@@ -20,10 +20,10 @@ public class SOMRecognizer implements RecognizerAI {
     private String[][] labels;
     private SelfOrgMap som;
 
-//    public final static int K = 11;
+    public final static int K = 11;
 
     // remove this after having more training dataset
-    public final static int K = 5;
+//    public final static int K = 5;
 
     // for testing purpose
     int mapside = 0;

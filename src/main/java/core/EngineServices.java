@@ -26,6 +26,7 @@ public class EngineServices {
     private RecognizerAI som10 = new SOM10();
     private RecognizerAI som30 = new SOM30();
     private RecognizerAI iter10Rate10Hide7 = new Iter10Rate10Hide7();
+    private RecognizerAI knn11 = new KNN11();
 
     private RecognizerAI trainer;
 
@@ -36,7 +37,12 @@ public class EngineServices {
         recognizerAIMap.put("some10", som10);
         recognizerAIMap.put("some30", som30);
         recognizerAIMap.put("percep_10_10_7", iter10Rate10Hide7);
+        recognizerAIMap.put("knn11", knn11);
 //        sampleData = SampleData.parseInputData(imageInfoService.getLabelToBufferedImageMap());
+
+    }
+
+    public void initializeData(){
         imageInfoService.loadTrainingData();
         imageInfoService.loadTestingData();
         System.out.println("the size of training data is" + imageInfoService.images.size());
@@ -51,8 +57,11 @@ public class EngineServices {
     }
 
     public void trainAll(){
+        initialise();
         try{
-            initialise();
+            if(sampleTestingData == null || sampleTestingData.allSamples().size() == 0){
+                initializeData();
+            }
             ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
             for(String trainerAI: recognizerAIMap.keySet()){
                 recognizerAIMap.get(trainerAI).train(sampleData, progress);
@@ -63,10 +72,27 @@ public class EngineServices {
         }
     }
 
+    public void trainKNN11(){
+        initialise();
+        try{
+            if(sampleTestingData == null || sampleTestingData.allSamples().size() == 0 ){
+                initializeData();
+            }
+            ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
+            recognizerAIMap.get("knn11").train(sampleData, progress);
+            trainer = recognizerAIMap.get("knn11");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
     public void trainSOM10(){
+        initialise();
         try{
-            initialise();
+            if(sampleTestingData == null || sampleTestingData.allSamples().size() == 0 ){
+                initializeData();
+            }
             ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
             recognizerAIMap.get("some10").train(sampleData, progress);
             trainer = recognizerAIMap.get("some10");
@@ -77,11 +103,27 @@ public class EngineServices {
 
 
 
+    public void trainPercep_10_10_7(){
+        initialise();
+        try{
+            if(sampleTestingData == null || sampleTestingData.allSamples().size() == 0 ){
+                initializeData();
+            }
+            ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
+            recognizerAIMap.get("percep_10_10_7").train(sampleData, progress);
+            trainer = recognizerAIMap.get("percep_10_10_7");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
     public void train() throws InterruptedException {
         initialise();
-        trainer = overFitter;
+        initializeData();
+//        trainer = overFitter;
         ArrayBlockingQueue<Double> progress = new ArrayBlockingQueue<>(10000);
-        overFitter.train(sampleData, progress);
+        trainer.train(sampleData, progress);
     }
 
     public String findLabelFor(FloatDrawing floatDrawing){
