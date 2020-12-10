@@ -1,7 +1,5 @@
 package learners;
 
-//import handwriting.gui.DrawingEditorController;
-//import handwriting.learners.som.SOMRecognizer;
 import learners.som.SOMRecognizer;
 
 public class SOM30 extends SOMRecognizer {

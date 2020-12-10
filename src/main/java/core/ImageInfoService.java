@@ -161,7 +161,5 @@ public class ImageInfoService {
 //            System.out.println(bimfull);
         }
 
-//        BufferedImage bim = getImage("Innocent.jpg");
-//        System.out.println(bim);
     }
 }

@@ -164,11 +164,9 @@ public class EngineServices {
     }
 
     public ArrayList<Result> resetTable(SampleData testData, Histogram<String> correct, Histogram<String> incorrect) {
-//        resultTable.getItems().clear();
         ArrayList<Result> resultTable = new ArrayList<>();
         for (String label: testData.allLabels()) {
             resultTable.add(new Result(label, correct.getCountFor(label), incorrect.getCountFor(label)));
-//            resultTable.getItems().add(new Result(label, correct.getCountFor(label), incorrect.getCountFor(label)));
         }
         return  resultTable;
     }
