@@ -30,8 +30,6 @@ public class ProjectController {
     public String printHi(){
         String hi = "HI EEEEE";
         return hi;
-//        Gson json = new Gson();
-//        return json.toJson(hi);
     }
 
     @RequestMapping("/train")
@@ -136,7 +134,8 @@ public class ProjectController {
             System.out.println(source);
             byte [] byteArray = Base64.getDecoder().decode(source);
             fout.write(byteArray);
-            String label = predictLabel(imageFilePath);
+//            String label = predictLabel(imageFilePath); un comment for knn and MPL
+            String label = predictLabelWithCNN(imageFilePath);
             return label;
         }
 
@@ -161,6 +160,27 @@ public class ProjectController {
     public ArrayList<Result>  testEngine() throws InterruptedException {
         ArrayList<Result> resultsStatics =  engineService.returnTestDataStatistics();
         return resultsStatics;
+    }
+
+    @RequestMapping("/predictWithConvNN")
+    public String callPyServer(){
+        String ImagePath = "C:/Users/Innocent/.keras/datasets/test_hendrix_image/QUARD_5180b5b4-a920-470e-9bcf-62751428f306_.JPEG";
+        String image2 = "D:/School data/Senior year/Sinior Year Fall semester/Senior Seminar/Senior Capstone/ImageClassificationRestAPI/testImages/DWREYNOLDS_6e423ae7-eb78-4224-aa7a-bed3544b3a49_.JPEG";
+        String label = engineService.callPySocket(image2);
+        return label;
+    }
+
+    public String predictLabelWithCNN(String filePath){
+        String fullPath = "D:/School data/Senior year/Sinior Year Fall semester/Senior Seminar/Senior Capstone/ImageClassificationRestAPI/" + filePath;
+        String result = engineService.callPySocket(fullPath);
+        return result;
+    }
+
+
+    @RequestMapping("/enableCNN")
+    public String setCNN(){
+        engineService.activateCNN(true);
+        return "CNN activated";
     }
 
 }

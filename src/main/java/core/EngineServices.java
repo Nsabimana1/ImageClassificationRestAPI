@@ -7,8 +7,14 @@ import storage.*;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @Service
@@ -27,6 +33,8 @@ public class EngineServices {
     private RecognizerAI som30 = new SOM30();
     private RecognizerAI iter10Rate10Hide7 = new Iter10Rate10Hide7();
     private RecognizerAI knn11 = new KNN11();
+
+    private boolean testWithCNN = false;
 
     private RecognizerAI trainer;
 
@@ -48,6 +56,10 @@ public class EngineServices {
         System.out.println("the size of training data is" + imageInfoService.images.size());
         sampleData = SampleData.parseInputData(imageInfoService.images);
         sampleTestingData = SampleData.parseInputData(imageInfoService.testingImages);
+    }
+
+    public void activateCNN(boolean value){
+        this.testWithCNN = value;
     }
 
     public void setCurrentTrainer(String currentTrainer){
@@ -146,19 +158,56 @@ public class EngineServices {
     public ArrayList<Result> runTests(SampleData testData) {
         int numCorrect = 0;
         Histogram<String> correct = new Histogram<>(), incorrect = new Histogram<>();
-        for (int i = 0; i < testData.numDrawings(); i++) {
-            Duple<String, FloatDrawing> test = testData.getLabelAndDrawing(i);
-            if (trainer.classify(test.getSecond()).equals(test.getFirst())) {
-                numCorrect += 1;
-                correct.bump(test.getFirst());
-            } else {
-                incorrect.bump(test.getFirst());
+        ArrayList<ImageInfo> testingImages = new ArrayList<>();
+        if(imageInfoService.testingImages.size() == 0){
+            imageInfoService.loadTestingData();
+        }
+        testingImages = imageInfoService.testingImages;
+        if(testWithCNN){
+            for(ImageInfo imgInfo: testingImages){
+                String currentImagePath = "D:/School data/Senior year/Sinior Year Fall semester/Senior Seminar" +
+                        "/Senior Capstone/ImageClassificationRestAPI/"+ imgInfo.filePath;
+                String predictedLabel = callPySocket(currentImagePath);
+                System.out.println(predictedLabel);
+                String predLabel = predictedLabel.split(" ")[6];
+                System.out.println(predLabel);
+                System.out.println(imgInfo.imageLabel);
+                if (predLabel.toLowerCase().equals(imgInfo.imageLabel.toLowerCase())) {
+                    numCorrect += 1;
+                    correct.bump(imgInfo.imageLabel);
+                } else {
+                    incorrect.bump(imgInfo.imageLabel);
+                }
+            }
+        }else {
+            for (int i = 0; i < testData.numDrawings(); i++) {
+                Duple<String, FloatDrawing> test = testData.getLabelAndDrawing(i);
+
+                if (trainer.classify(test.getSecond()).equals(test.getFirst())) {
+                    numCorrect += 1;
+                    correct.bump(test.getFirst());
+                } else {
+                    incorrect.bump(test.getFirst());
+                }
             }
         }
         double percent = 100.0 * numCorrect / testData.numDrawings();
         String  testResults = "";
         testResults = (String.format("%d/%d (%4.2f%%) correct", numCorrect, testData.numDrawings(), percent));
-        ArrayList<Result> resultsInfo = resetTable(testData, correct, incorrect);
+
+        ArrayList<Result> resultsInfo = new ArrayList<>();
+        HashSet<String> visited = new HashSet<>();
+        if(testWithCNN){
+            for (ImageInfo imgInfo: testingImages) {
+                if(!visited.contains(imgInfo.imageLabel)) {
+                    resultsInfo.add(new Result(imgInfo.imageLabel, correct.getCountFor(imgInfo.imageLabel), incorrect.getCountFor(imgInfo.imageLabel)));
+                    visited.add(imgInfo.imageLabel);
+                }
+            }
+        }else{
+            resultsInfo = resetTable(testData, correct, incorrect);
+        }
+        System.out.println(testResults);
         System.out.println(trainer);
         return resultsInfo;
     }
@@ -169,6 +218,36 @@ public class EngineServices {
             resultTable.add(new Result(label, correct.getCountFor(label), incorrect.getCountFor(label)));
         }
         return  resultTable;
+    }
+
+
+    public String callPySocket(String image_path){
+        String hostname = "localhost";
+        int port = 9999;
+        String response = "";
+        try (Socket socket = new Socket(hostname, port)) {
+            socket.getOutputStream().write(image_path.getBytes());
+            InputStream input = socket.getInputStream();
+            InputStreamReader reader = new InputStreamReader(input);
+
+            int character;
+            StringBuilder data = new StringBuilder();
+
+            while ((character = reader.read()) != -1) {
+                data.append((char) character);
+            }
+//            System.out.println(data);
+            response = data.toString();
+
+        } catch (UnknownHostException ex) {
+
+            System.out.println("Server not found: " + ex.getMessage());
+
+        } catch (IOException ex) {
+
+            System.out.println("I/O error: " + ex.getMessage());
+        }
+        return response;
     }
 
 }
